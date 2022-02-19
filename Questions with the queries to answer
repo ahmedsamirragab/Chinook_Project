@@ -1,0 +1,48 @@
+-- Q1 How Many Customer Each Employee Supports?
+select e.FirstName || ' ' || e.LastName as Employee_Name , count(customerid) as No_Customers
+from Employee e JOIN Customer c
+on e.EmployeeId = c.SupportRepId
+GROUP By Employee_Name;
+
+-- Q2 What about our sales per customer's Countries?
+SELECT Country , sum(total) total
+from Customer join Invoice
+on Customer.CustomerId = Invoice.CustomerId
+GROUP by Country
+ORDER by total DESC;
+
+--Q3 How much customers works for Companies spent?
+with t1 as
+(select c.CustomerId , sum(i.total) total
+from Customer c join Invoice i
+on c.CustomerId = i.CustomerId
+GROUP BY c.CustomerId
+HAVING c.CustomerId in (select CustomerId from Customer where Company NOT NULL)
+),
+t2 as
+(select c.CustomerId , sum(i.total) total
+from Customer c join Invoice i
+on c.CustomerId = i.CustomerId
+GROUP BY c.CustomerId
+HAVING c.CustomerId in (select CustomerId from Customer where Company is NULL)
+)
+select round(avg(t1.total),2) AVG_Spent_Comp , round(avg(t2.total),2) AVG_Spent_NoComp 
+FROM t1 CROSS JOIN t2;
+
+--Q4 Who is the most Artist's tracks sold in USA?
+-- the other artist shares in USA
+select a.Name Artist_Name,count(il.TrackId ) Tracks_Sold_IN_USA
+from Customer c join Invoice i
+on c.CustomerId = i.CustomerId
+join InvoiceLine il
+on il.InvoiceId = i.InvoiceId
+join Track t
+on t.TrackId = il.TrackId
+JOIN Album al
+on al.AlbumId = t.AlbumId
+JOIN Artist a
+on a.ArtistId = al.ArtistId
+GROUP By 1 
+HAVING c.Country = 'USA'
+ORDER By 2 DESC
+
